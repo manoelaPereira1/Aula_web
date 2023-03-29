@@ -22,13 +22,27 @@ class BD {
 
 	 public function inserir($nome_tabela, $dados)
   {
+    unset($dados['id']);
     $conn = $this->conn(); 
     //a interrogação será substituida pelo valor de cada indice do vetor
-    $sql = "INSERT INTO $nome_tabela (nome, telefone) VALUES (?, ?);";
+    $sql = "INSERT INTO $nome_tabela (";
+    $flag = 0;
+    foreach($dados as $campo => $valor){
+      $sql .= $flag ==0 ? " $campo" : ", $campo"; 
+      $flag = 1;
+    }
+    $sql .= ") VALUES (";
+
+    $flag = 0;
+    $arrayDados = [];
+    foreach($dados as $campo => $valor){
+      $sql .= $flag ==0 ? " ?" : ", ?"; 
+      $flag = 1;
+      $arrayDados[] = $valor;
+    }
+    $sql .= ");";
    
     $st = $conn->prepare($sql);
-    //executa o insert passando os valores do vetor referente aos campos de A, B e C
-    $arrayDados = [ $dados['nome'], $dados['telefone'] ];
     $st->execute($arrayDados);
 
   }
@@ -45,8 +59,7 @@ class BD {
 		return $st->fetchAll(PDO::FETCH_CLASS);
   }
 
-
-	public function buscar($nome_tabela,$id)
+  public function buscar($nome_tabela, $id)
   {
     $conn = $this->conn(); 
     $sql = "SELECT * FROM $nome_tabela WHERE id=$id;";
@@ -62,11 +75,16 @@ class BD {
 		$id = $dados['id'];
     $conn = $this->conn(); 
     //a interrogação será substituida pelo valor de cada indice do vetor
-    $sql = "UPDATE $nome_tabela SET nome = ? telefone = ? WHERE id=$id;";
+    $sql = "UPDATE $nome_tabela SET ";
+    $flag = 0;
+    foreach($dados as $campo => $valor){
+      $sql .= $flag ==0 ? " $campo = ?" : ", $campo =?"; 
+      $flag = 1;
+      $arrayDados[] = $valor;
+    }
+    $sql .= " WHERE id=$id;";
    
     $st = $conn->prepare($sql);
-    //executa o insert passando os valores do vetor referente aos campos de A, B e C
-    $arrayDados = [ $dados['nome'], $dados['telefone'] ];
     $st->execute($arrayDados);
 
   }
